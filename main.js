@@ -18,16 +18,23 @@ var mainState = {
         landscape.initMap();
 
         selected = null;
+        free = false;
 
-        large = game.add.sprite(350, 350, 'large');
-        medium = game.add.sprite(200, 200, 'medium');
-        small = game.add.sprite(50, 50, 'small');
+        large = game.add.sprite(200, 500, 'large');
+        medium = game.add.sprite(200, 400, 'medium');
+        small = game.add.sprite(200, 300, 'small');
         large.anchor.setTo(0.5);
         medium.anchor.setTo(0.5);
         small.anchor.setTo(0.5);
         large.inputEnabled = true;
         medium.inputEnabled = true;
         small.inputEnabled = true;
+        large.pos = 0
+        medium.pos = 1
+        small.pos = 2
+        map[0][0] = large;
+        map[0][1] = medium;
+        map[0][2] = small;
         large.events.onInputDown.add(actions.select, this);
         medium.events.onInputDown.add(actions.select, this);
         small.events.onInputDown.add(actions.select, this);
@@ -62,11 +69,13 @@ var actions = {
         }
     },
     select: function(disk) {
-        if (selected != null){
-            selected.tint = 0xffffff;
+        if (!free) {
+            if (selected != null){
+                selected.tint = 0xffffff;
+            }
+            selected = disk;
+            selected.tint = 0xbbbbbb;
         }
-        selected = disk;
-        selected.tint = 0xbbbbbb;
     }
 };
 
@@ -76,13 +85,10 @@ var landscape = {
         for (var x = 0; x < 3; x++) {
             var newTower = [];
             for (var y = 0; y < 4; y++){
-                newTower.push('.');
+                newTower.push(null);
             }
             map.push(newTower);
         }
-        map[0][0] = "L";
-        map[0][1] = "M";
-        map[0][2] = "S";
     },
 
     drawMap: function() {
