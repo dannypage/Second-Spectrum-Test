@@ -18,7 +18,6 @@ var mainState = {
         landscape.initMap();
 
         selected = null;
-        isMoving = false;
 
         large = game.add.sprite(350, 350, 'large');
         medium = game.add.sprite(200, 200, 'medium');
@@ -35,15 +34,12 @@ var mainState = {
         game.physics.arcade.enable(small);
         game.physics.arcade.enable(medium);
         game.physics.arcade.enable(large);
+
         game.input.keyboard.addKey(Phaser.Keyboard.UP).onDown.add(function () { actions.moveDisk('up'); }, this);
         game.input.keyboard.addKey(Phaser.Keyboard.DOWN).onDown.add(function () { actions.moveDisk('down'); }, this);
-        this.game.input.keyboard.addKey(Phaser.Keyboard.LEFT).onDown.add(function () { actions.moveDisk('left'); }, this);
-        this.game.input.keyboard.addKey(Phaser.Keyboard.RIGHT).onDown.add(function () { actions.moveDisk('right'); }, this);
+        game.input.keyboard.addKey(Phaser.Keyboard.LEFT).onDown.add(function () { actions.moveDisk('left'); }, this);
+        game.input.keyboard.addKey(Phaser.Keyboard.RIGHT).onDown.add(function () { actions.moveDisk('right'); }, this);
         landscape.drawMap();
-        //cursors.up.onDown.add(actions.moveDiskUp,this);
-        //cursors.right.onDown.add(actions.moveDisk,{direction: 'right'});
-        //cursors.up.onDown.add(actions.moveDisk,{direction: 'up'});
-        //cursors.down.onDown.add(actions.moveDisk,{direction: 'down'});
     },
     update: function() {
     // This function is called 60 times per second
@@ -66,7 +62,11 @@ var actions = {
         }
     },
     select: function(disk) {
+        if (selected != null){
+            selected.tint = 0xffffff;
+        }
         selected = disk;
+        selected.tint = 0xbbbbbb;
     }
 };
 
