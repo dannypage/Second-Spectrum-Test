@@ -35,10 +35,15 @@ var mainState = {
         game.physics.arcade.enable(small);
         game.physics.arcade.enable(medium);
         game.physics.arcade.enable(large);
-        cursors = game.input.keyboard.createCursorKeys();
-
+        game.input.keyboard.addKey(Phaser.Keyboard.UP).onDown.add(function () { actions.moveDisk('up'); }, this);
+        game.input.keyboard.addKey(Phaser.Keyboard.DOWN).onDown.add(function () { actions.moveDisk('down'); }, this);
+        this.game.input.keyboard.addKey(Phaser.Keyboard.LEFT).onDown.add(function () { actions.moveDisk('left'); }, this);
+        this.game.input.keyboard.addKey(Phaser.Keyboard.RIGHT).onDown.add(function () { actions.moveDisk('right'); }, this);
         landscape.drawMap();
-        cursors.left.onDown.add(actions.moveDisk,{direction: 'left'});
+        //cursors.up.onDown.add(actions.moveDiskUp,this);
+        //cursors.right.onDown.add(actions.moveDisk,{direction: 'right'});
+        //cursors.up.onDown.add(actions.moveDisk,{direction: 'up'});
+        //cursors.down.onDown.add(actions.moveDisk,{direction: 'down'});
     },
     update: function() {
     // This function is called 60 times per second
@@ -50,34 +55,18 @@ var actions = {
     moveDisk: function(direction) {
         if (selected != null) {
             if (direction == 'left') {
-                selected.body.velocity.x += -50;
+                selected.x += -50;
+            } else if (direction == 'right') {
+                selected.x += 50;
+            } else if (direction == 'up') {
+                selected.y += -50;
+            } else if (direction == 'down') {
+                selected.y += 50;
             }
         }
-
-
-            // (selected != null && !isMoving) {
-            // // If the left arrow key is pressed
-            // if (cursors.left.justPressed() ) {
-            // // Move the player to the left
-
-            //     selected.body.position.x += -50;
-            // }
-            // // If the right arrow key is pressed
-            // else if (cursors.right.justPressed() ) {
-            // // Move the player to the right
-
-            //     selected.body.position.x += 50;
-            // }
-            // // If neither the right or left arrow key is pressed
-            // else {
-            // // Stop the player
-            //     0;
-            // }
-        //}
     },
     select: function(disk) {
         selected = disk;
-        console.log(disk);
     }
 };
 
