@@ -11,18 +11,24 @@ var mainState = {
         game.load.image('large', 'blueHigh6.png');
         game.stage.backgroundColor = '#7FDBFF';
         game.physics.startSystem(Phaser.Physics.ARCADE);
-
     },
     create: function() {
     // This function is called after the preload function
     // Here we set up the game, display sprites, etc.
-        small = game.add.sprite(50, 50, 'small');
-        medium = game.add.sprite(200, 200, 'medium');
+        landscape.initMap();
+
         large = game.add.sprite(350, 350, 'large');
+        medium = game.add.sprite(200, 200, 'medium');
+        small = game.add.sprite(50, 50, 'small');
+        large.anchor.setTo(0.5, 0.5);
+        medium.anchor.setTo(0.5, 0.5);
+        small.anchor.setTo(0.5, 0.5);
         game.physics.arcade.enable(small);
         game.physics.arcade.enable(medium);
         game.physics.arcade.enable(large);
         cursors = game.input.keyboard.createCursorKeys();
+
+        landscape.drawMap();
     },
     update: function() {
     // This function is called 60 times per second
@@ -32,7 +38,8 @@ var mainState = {
 };
 var actions = {
     movePlayer: function() {
-    // If the left arrow key is pressed
+
+        // If the left arrow key is pressed
         if (cursors.left.isDown) {
         // Move the player to the left
             small.body.velocity.x = -200;
@@ -50,8 +57,28 @@ var actions = {
     }
 };
 
+var landscape = {
+    initMap: function() {
+        map = [];
+        for (var x = 0; x < 3; x++) {
+            var newTower = [];
+            for (var y = 0; y < 4; y++){
+                newTower.push('.');
+            }
+            map.push(newTower);
+        }
+        map[0][0] = "L";
+        map[0][1] = "M";
+        map[0][2] = "S";
+    },
+
+    drawMap: function() {
+        0;
+    }
+}
+
 // We initialising Phaser
-var game = new Phaser.Game(800, 600, Phaser.AUTO, 'gameDiv');
+var game = new Phaser.Game(1200, 600, Phaser.AUTO, 'gameDiv');
 // And finally we tell Phaser to add and start our 'main' state
 game.state.add('main', mainState);
 game.state.start('main');
