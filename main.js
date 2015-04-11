@@ -9,67 +9,76 @@ var mainState = {
         game.load.image('small', 'blueHigh2.png');
         game.load.image('medium', 'blueHigh4.png');
         game.load.image('large', 'blueHigh6.png');
+        game.load.image('red', 'red6.png');
         game.stage.backgroundColor = '#7FDBFF';
         game.physics.startSystem(Phaser.Physics.ARCADE);
     },
     create: function() {
     // This function is called after the preload function
     // Here we set up the game, display sprites, etc.
-        landscape.initMap();
 
         selected = null;
-        free = false;
+        moving = false;
 
-        large = game.add.sprite(200, 500, 'large');
-        medium = game.add.sprite(200, 400, 'medium');
-        small = game.add.sprite(200, 300, 'small');
+        landscape.createBlocks();
+        large = game.add.sprite(225, 450, 'large');
+        medium = game.add.sprite(225, 350, 'medium');
+        small = game.add.sprite(225, 250, 'small');
+
         large.anchor.setTo(0.5);
         medium.anchor.setTo(0.5);
         small.anchor.setTo(0.5);
+
         large.inputEnabled = true;
         medium.inputEnabled = true;
         small.inputEnabled = true;
-        large.pos = 0
-        medium.pos = 1
-        small.pos = 2
-        map[0][0] = large;
-        map[0][1] = medium;
-        map[0][2] = small;
+        large.level = 0;
+        medium.level = 1;
+        small.level = 2;
+        large.column = 0;
+        medium.column = 0;
+        small.column = 0;
+
         large.events.onInputDown.add(actions.select, this);
         medium.events.onInputDown.add(actions.select, this);
         small.events.onInputDown.add(actions.select, this);
-        game.physics.arcade.enable(small);
-        game.physics.arcade.enable(medium);
-        game.physics.arcade.enable(large);
 
         game.input.keyboard.addKey(Phaser.Keyboard.UP).onDown.add(function () { actions.moveDisk('up'); }, this);
         game.input.keyboard.addKey(Phaser.Keyboard.DOWN).onDown.add(function () { actions.moveDisk('down'); }, this);
         game.input.keyboard.addKey(Phaser.Keyboard.LEFT).onDown.add(function () { actions.moveDisk('left'); }, this);
         game.input.keyboard.addKey(Phaser.Keyboard.RIGHT).onDown.add(function () { actions.moveDisk('right'); }, this);
-        landscape.drawMap();
     },
     update: function() {
     // This function is called 60 times per second
     // It contains the game's logic
-
+        if (small.column == 2 && medium.column == 2 && large.column == 2 && !moving) {
+            var text = game.add.text(game.world.centerX, game.world.centerY, "Congrats! You win!", { font: "65px Arial", fill: "#ff0044", align: "center" });
+                text.anchor.set(0.5);
+        }
     },
 };
 var actions = {
     moveDisk: function(direction) {
         if (selected != null) {
-            if (direction == 'left') {
-                selected.x += -50;
-            } else if (direction == 'right') {
-                selected.x += 50;
-            } else if (direction == 'up') {
-                selected.y += -50;
-            } else if (direction == 'down') {
-                selected.y += 50;
+            if (direction == 'left' && selected.level == 3 && selected.column !=0) {
+                selected.column -= 1;
+                selected.x = landscape.mapX(selected.column);
+            } else if (direction == 'right' && selected.level == 3 && selected.column !=2) {
+                selected.column += 1;
+                selected.x = landscape.mapX(selected.column);
+            } else if (direction == 'up' && landscape.checkUp() && !moving) {
+                moving = true
+                selected.level = 3;
+                selected.y = landscape.mapY(selected.level);
+            } else if (direction == 'down' && landscape.checkDown()
+                        && moving) {
+                moving = false
+                selected.y = landscape.mapY(selected.level);
             }
         }
     },
     select: function(disk) {
-        if (!free) {
+        if (!moving) {
             if (selected != null){
                 selected.tint = 0xffffff;
             }
@@ -80,24 +89,86 @@ var actions = {
 };
 
 var landscape = {
-    initMap: function() {
-        map = [];
-        for (var x = 0; x < 3; x++) {
-            var newTower = [];
-            for (var y = 0; y < 4; y++){
-                newTower.push(null);
-            }
-            map.push(newTower);
+    createBlocks: function () {
+        red1 = game.add.sprite(225, 525, 'red');
+        red2 = game.add.sprite(625, 525, 'red');
+        red3 = game.add.sprite(1025, 525, 'red');
+        red1.anchor.setTo(0.5);
+        red2.anchor.setTo(0.5);
+        red3.anchor.setTo(0.5);
+    },
+
+    mapX: function(column) {
+        switch(column) {
+            case 0:
+                return 225;
+            case 1:
+                return 625;
+            case 2:
+                return 1025;
         }
     },
 
-    drawMap: function() {
-        0;
+    mapY: function(level) {
+        switch(level) {
+            case 0:
+                return 450;
+            case 1:
+                return 350;
+            case 2:
+                return 250;
+            case 3:
+                return 100;
+        }
+    },
+
+    checkUp: function() {
+
+        if (small.column == selected.column && small.level > selected.level) {
+            return false;
+        } else if (medium.column == selected.column && medium.level > selected.level) {
+            return false;
+        } else if (large.column == selected.column && large.level > selected.level) {
+            return false;
+        } else {
+            return true;
+        }
+    },
+
+    checkDown: function() {
+        if (selected.key == "small") {
+            if (selected.column == medium.column) {
+                selected.level = medium.level + 1;
+            } else if (selected.column == large.column) {
+                selected.level = large.level + 1;
+            } else {
+                selected.level = 0;
+            }
+            return true;
+        } else if (selected.key == "medium") {
+            if (selected.column == small.column) {
+                return false;
+            } else if (selected.column == large.column) {
+                selected.level = large.level + 1;
+            } else {
+                selected.level = 0;
+            }
+            return true;
+        } else if (selected.key == "large") {
+            if (selected.column == small.column) {
+                return false;
+            } else if ( selected.column == medium.column ) {
+                return false;
+            } else {
+                selected.level = 0;
+            }
+            return true;
+        }
     }
 }
 
 // We initialising Phaser
-var game = new Phaser.Game(1280, 600, Phaser.AUTO, 'gameDiv');
+var game = new Phaser.Game(1250, 600, Phaser.AUTO, 'gameDiv');
 // And finally we tell Phaser to add and start our 'main' state
 game.state.add('main', mainState);
 game.state.start('main');
