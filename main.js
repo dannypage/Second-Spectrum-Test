@@ -53,7 +53,7 @@ var mainState = {
     // It contains the game's logic
         if (small.column == 2 && medium.column == 2 && large.column == 2 && !moving) {
             var text = game.add.text(game.world.centerX, game.world.centerY, "Congrats! You win!", { font: "65px Arial", fill: "#ff0044", align: "center" });
-                text.anchor.set(0.5);
+            text.anchor.set(0.5);
         }
     },
 };
@@ -85,6 +85,9 @@ var actions = {
             selected = disk;
             selected.tint = 0xbbbbbb;
         }
+    },
+    restart: function() {
+        game.state.start('main');
     }
 };
 
