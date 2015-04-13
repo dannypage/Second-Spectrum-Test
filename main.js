@@ -6,12 +6,12 @@ var mainState = {
     // This function will be executed at the beginning
     // That's where we load the game's assets
     // Load the images
-        game.load.image('small', 'blueHigh2.png');
-        game.load.image('medium', 'blueHigh4.png');
-        game.load.image('large', 'blueHigh6.png');
-        game.load.image('red', 'red6.png');
+        game.load.image('small', '/assets/blueHigh2.png');
+        game.load.image('medium', '/assets/blueHigh4.png');
+        game.load.image('large', '/assets/blueHigh6.png');
+        game.load.image('red', '/assets/red6.png');
+        game.load.image('reload', '/assets/return.png')
         game.stage.backgroundColor = '#7FDBFF';
-        game.physics.startSystem(Phaser.Physics.ARCADE);
     },
     create: function() {
     // This function is called after the preload function
@@ -47,13 +47,25 @@ var mainState = {
         game.input.keyboard.addKey(Phaser.Keyboard.DOWN).onDown.add(function () { actions.moveDisk('down'); }, this);
         game.input.keyboard.addKey(Phaser.Keyboard.LEFT).onDown.add(function () { actions.moveDisk('left'); }, this);
         game.input.keyboard.addKey(Phaser.Keyboard.RIGHT).onDown.add(function () { actions.moveDisk('right'); }, this);
+
+        fresh = true;
+        var demo = game.add.text(game.world.centerX, 200, "Click to Solve", { font: "65px Arial", fill: "#ffffff", align: "center" });
+        demo.anchor.set(0.5);
+        demo.inputEnabled = true;
+        demo.events.onInputDown.add(actions.demo, this);
     },
     update: function() {
     // This function is called 60 times per second
     // It contains the game's logic
-        if (small.column == 2 && medium.column == 2 && large.column == 2 && !moving) {
-            var text = game.add.text(game.world.centerX, game.world.centerY, "Congrats! You win!", { font: "65px Arial", fill: "#ff0044", align: "center" });
+        if (!fresh) {
+            demo.kill();
+        } else if (small.column == 2 && medium.column == 2 && large.column == 2 && !moving) {
+            var text = game.add.text(game.world.centerX, 200, "Congrats! You win!", { font: "65px Arial", fill: "#ffffff", align: "center" });
             text.anchor.set(0.5);
+            reload = game.add.sprite(game.world.centerX, 250, 'reload');
+            reload.anchor.set(0.5);
+            reload.inputEnabled = true;
+            reload.events.onInputDown.add(actions.restart, this);
         }
     },
 };
@@ -67,6 +79,7 @@ var actions = {
                 selected.column += 1;
                 selected.x = landscape.mapX(selected.column);
             } else if (direction == 'up' && landscape.checkUp() && !moving) {
+                fresh = false;
                 moving = true
                 selected.level = 3;
                 selected.y = landscape.mapY(selected.level);
@@ -88,6 +101,39 @@ var actions = {
     },
     restart: function() {
         game.state.start('main');
+    },
+    demo: function() {
+        select(small);
+        moveDisk('up');
+        moveDisk('right');
+        moveDisk('right');
+        moveDisk('down');
+        select(medium);
+        moveDisk('up');
+        moveDisk('right');
+        moveDisk('down');
+        select(small);
+        moveDisk('up');
+        moveDisk('left');
+        moveDisk('down');
+        select(large);
+        moveDisk('up');
+        moveDisk('right');
+        moveDisk('right');
+        moveDisk('down');
+        select(small);
+        moveDisk('up');
+        moveDisk('left');
+        moveDisk('down');
+        select(medium);
+        moveDisk('up');
+        moveDisk('right');
+        moveDisk('down');
+        select(small);
+        moveDisk('up');
+        moveDisk('right');
+        moveDisk('right');
+        moveDisk('down');
     }
 };
 
