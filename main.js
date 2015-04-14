@@ -141,6 +141,80 @@ var actions = {
                 actions.moveDisk('down', false);
                 break;
         }
+    },
+    hint: function() {
+        currentState = ""
+        for (var i = 0; i<3;i++){
+            currentState += diskArray[i].column;
+        }
+        aToC = ['000','200','210','010','110','112','212','012','022','222'];
+        bToC = ['111','211','201','101','001','002','202','102','122','222'];
+        aToB = ['000','100','120','020','220','221','121','021','011','111'];
+        legFast = aToC.indexOf(currentState);
+        legMedium = bToC.indexOf(currentState);
+        legSlow = bToC.indexOf(currentState);
+        if (legFast > -1) {
+            nextState = aToC[legFast+1];
+        } else if (legMedium > -1) {
+            nextState = bToC[legFast+1];
+        } else if (legSlow > -1) {
+            nextState = aToB[legFast+1];
+        } else {
+            alert("Invalid State.");
+            return;
+        }
+        for (var i=0; i<3; i++){
+            if (currentState[i] != nextState[i]) {
+                disk = i;
+                break;
+            }
+        }
+        // Grab top of stack in currentState Column
+        actions.select(diskArray[disk])
+        // Move to nextState Column
+        if (currentState[disk] == 0 && nextState[disk] == 1) {
+            var command_string = "urd";
+            count = 0;
+            interval(function(){
+                actions.demo_wait(command_string[count]);
+                count++;
+            }, 300, command_string.length)
+        } else if (currentState[disk] == 0 && nextState[disk] == 2) {
+            var command_string = "urrd";
+            count = 0;
+            interval(function(){
+                actions.demo_wait(command_string[count]);
+                count++;
+            }, 300, command_string.length)
+        } else if (currentState[disk] == 2 && nextState[disk] == 1) {
+            var command_string = "ufd";
+            count = 0;
+            interval(function(){
+                actions.demo_wait(command_string[count]);
+                count++;
+            }, 300, command_string.length)
+        } else if (currentState[disk] == 2 && nextState[disk] == 0) {
+            var command_string = "uffd";
+            count = 0;
+            interval(function(){
+                actions.demo_wait(command_string[count]);
+                count++;
+            }, 300, command_string.length)
+        } else if (currentState[disk] == 1 && nextState[disk] == 0) {
+            var command_string = "ufd";
+            count = 0;
+            interval(function(){
+                actions.demo_wait(command_string[count]);
+                count++;
+            }, 300, command_string.length)
+        } else if (currentState[disk] == 1 && nextState[disk] == 2) {
+            var command_string = "urd";
+            count = 0;
+            interval(function(){
+                actions.demo_wait(command_string[count]);
+                count++;
+            }, 300, command_string.length)
+        }
     }
 };
 
@@ -157,7 +231,7 @@ var landscape = {
         large = game.add.sprite(225, 447, 'large');
         medium = game.add.sprite(225, 337, 'medium');
         small = game.add.sprite(225, 227, 'small');
-
+        diskArray = [small, medium, large];
         landscape.assign_values(large,0);
         landscape.assign_values(medium,1);
         landscape.assign_values(small,2);
