@@ -32,7 +32,7 @@ var mainState = {
     create: function() {
     // This function is called after the preload function
     // Here we set up the game, display sprites, input, etc.
-
+        count = 0;
         selected = null;  //Disk Selected
         moving = false;   //Disk Is Freely Moving
         tweening = false; //Disk is being animated
@@ -52,8 +52,12 @@ var mainState = {
             var text = game.add.text(game.world.centerX, 200, "Congrats! You win!", { font: "65px Arial", fill: "#ffffff", align: "center" });
             text.anchor.set(0.5);
             moving = true;
+            demoing = false;
             actions.unselect();
             landscape.reloadButton();
+            small.inputEnabled = false;
+            medium.inputEnabled = false;
+            large.inputEnabled = false;
         }
     },
 };
@@ -109,15 +113,76 @@ var actions = {
         reload.destroy();
 
         //This string contains the most efficient solution to the ToH problem
-        //We iterate over it, step by step, and act out the solution
-        var command_string = "surrdmurdsufdlurrdsufdmurdsurrd";
+        actions.auto_sequence("surrdmurdsufdlurrdsufdmurdsurrd");
+    },
+    hint: function() {
+        //Implentation of the Hamiltonian Cycle Triangle
+        if (!demoing){
+            //Don't let multiple actions queue up until it's done.
+            demoing = true;
+            var currentState = ""
+            for (var i = 0; i<3;i++){
+                currentState += diskArray[i].column;
+            }
+            console.log("Old State");
+            var aToC = ['000','200','210','010','110','112','212','012','022','222'];
+            var bToC = ['111','211','201','101','001','002','202','102','122','222'];
+            var aToB = ['000','100','120','020','220','221','121','021','011','111'];
+            var legFast = aToC.indexOf(currentState);
+            var legMedium = bToC.indexOf(currentState);
+            var legSlow = aToB.indexOf(currentState);
+
+            //Find out which edge of the Triangle we are on
+            if (legFast > -1) {
+                var nextState = aToC[legFast+1];
+            } else if (legMedium > -1) {
+                var nextState = bToC[legMedium+1];
+            } else if (legSlow > -1) {
+                var nextState = aToB[legSlow+1];
+            } else {
+                alert("Invalid State.");
+                return;
+            }
+            console.log("New state");
+            //Find the moved Disk
+            for (var i=0; i<3; i++){
+                if (currentState[i] != nextState[i]) {
+                    var disk = i;
+                    break;
+                }
+            }
+            // Grab top of stack in currentState Column
+            actions.select(diskArray[disk]);
+            // Move to nextState Column
+            if (currentState[disk] == 0 && nextState[disk] == 1) {
+                actions.auto_sequence('urdk');
+            } else if (currentState[disk] == 0 && nextState[disk] == 2) {
+                actions.auto_sequence('urrdk');
+            } else if (currentState[disk] == 2 && nextState[disk] == 1) {
+                actions.auto_sequence('ufdk');
+            } else if (currentState[disk] == 2 && nextState[disk] == 0) {
+                actions.auto_sequence('uffdk');
+            } else if (currentState[disk] == 1 && nextState[disk] == 0) {
+                actions.auto_sequence('ufdk');
+            } else if (currentState[disk] == 1 && nextState[disk] == 2) {
+                actions.auto_sequence('urdk');
+            } else {
+                actions.auto_sequence('k');
+            }
+        }
+    },
+    unlock: function() {
+        demoing = false;
+    },
+    auto_sequence: function(command_string) {
+        //We iterate over commands, step by step, and act out the solution
         count = 0;
         interval(function(){
-            actions.demo_wait(command_string[count]);
+            actions.auto_move(command_string[count]);
             count++;
-        }, 300, command_string.length)
+        }, 300, command_string.length);
     },
-    demo_wait: function(command) {
+    auto_move: function(command) {
         switch(command){
             case 's':
                 actions.select(small);
@@ -140,80 +205,9 @@ var actions = {
             case 'd':
                 actions.moveDisk('down', false);
                 break;
-        }
-    },
-    hint: function() {
-        currentState = ""
-        for (var i = 0; i<3;i++){
-            currentState += diskArray[i].column;
-        }
-        aToC = ['000','200','210','010','110','112','212','012','022','222'];
-        bToC = ['111','211','201','101','001','002','202','102','122','222'];
-        aToB = ['000','100','120','020','220','221','121','021','011','111'];
-        legFast = aToC.indexOf(currentState);
-        legMedium = bToC.indexOf(currentState);
-        legSlow = bToC.indexOf(currentState);
-        if (legFast > -1) {
-            nextState = aToC[legFast+1];
-        } else if (legMedium > -1) {
-            nextState = bToC[legFast+1];
-        } else if (legSlow > -1) {
-            nextState = aToB[legFast+1];
-        } else {
-            alert("Invalid State.");
-            return;
-        }
-        for (var i=0; i<3; i++){
-            if (currentState[i] != nextState[i]) {
-                disk = i;
+            case 'k':
+                actions.unlock();
                 break;
-            }
-        }
-        // Grab top of stack in currentState Column
-        actions.select(diskArray[disk])
-        // Move to nextState Column
-        if (currentState[disk] == 0 && nextState[disk] == 1) {
-            var command_string = "urd";
-            count = 0;
-            interval(function(){
-                actions.demo_wait(command_string[count]);
-                count++;
-            }, 300, command_string.length)
-        } else if (currentState[disk] == 0 && nextState[disk] == 2) {
-            var command_string = "urrd";
-            count = 0;
-            interval(function(){
-                actions.demo_wait(command_string[count]);
-                count++;
-            }, 300, command_string.length)
-        } else if (currentState[disk] == 2 && nextState[disk] == 1) {
-            var command_string = "ufd";
-            count = 0;
-            interval(function(){
-                actions.demo_wait(command_string[count]);
-                count++;
-            }, 300, command_string.length)
-        } else if (currentState[disk] == 2 && nextState[disk] == 0) {
-            var command_string = "uffd";
-            count = 0;
-            interval(function(){
-                actions.demo_wait(command_string[count]);
-                count++;
-            }, 300, command_string.length)
-        } else if (currentState[disk] == 1 && nextState[disk] == 0) {
-            var command_string = "ufd";
-            count = 0;
-            interval(function(){
-                actions.demo_wait(command_string[count]);
-                count++;
-            }, 300, command_string.length)
-        } else if (currentState[disk] == 1 && nextState[disk] == 2) {
-            var command_string = "urd";
-            count = 0;
-            interval(function(){
-                actions.demo_wait(command_string[count]);
-                count++;
-            }, 300, command_string.length)
         }
     }
 };
@@ -271,6 +265,7 @@ var landscape = {
         game.input.keyboard.addKey(Phaser.Keyboard.DOWN).onDown.add(function () { actions.moveDisk('down', true); }, this);
         game.input.keyboard.addKey(Phaser.Keyboard.LEFT).onDown.add(function () { actions.moveDisk('left', true); }, this);
         game.input.keyboard.addKey(Phaser.Keyboard.RIGHT).onDown.add(function () { actions.moveDisk('right', true); }, this);
+        game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR).onDown.add(function() {actions.hint()});
     },
     tweenX: function() {
         var tween = game.add.tween(selected)
