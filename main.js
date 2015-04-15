@@ -22,11 +22,11 @@ function interval(func, wait, times){
 var mainState = {
     preload: function() {
     // Load all of the images
-        game.load.image('small', '/assets/blueHigh2.png');
-        game.load.image('medium', '/assets/blueHigh4.png');
-        game.load.image('large', '/assets/blueHigh6.png');
-        game.load.image('red', '/assets/red6.png');
-        game.load.image('reload', '/assets/return.png')
+        game.load.image('small', './assets/blueHigh2.png');
+        game.load.image('medium', './assets/blueHigh4.png');
+        game.load.image('large', './assets/blueHigh6.png');
+        game.load.image('red', './assets/red6.png');
+        game.load.image('reload', './assets/return.png')
         game.stage.backgroundColor = '#7FDBFF';
     },
     create: function() {
