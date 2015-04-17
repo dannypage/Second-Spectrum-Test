@@ -2,67 +2,116 @@
 require 'date'
 require 'csv'
 
+def date_parse(date)
+    Date.parse(date)
+rescue => error
+    Date.parse('20061221')
+end
+
+END_DATE = date_parse(ARGV[0])
+TEST_SHOTS = 100
 files = Dir[ File.join('./data', '**', '*') ].reject { |p| File.directory? p }
 
-Tracker = Struct.new(:attempts, :made) do
-    def percentage
-        if :made > 0
-            :attempts / :made.to_f
-        else
-            0
-        end
+def percentage(tracker_hash)
+    made = tracker_hash[:made]
+    attempts = tracker_hash[:attempts]
+    if made > 0
+        made.to_f / attempts
+    else
+        0
     end
 end
 
+location = Hash.new do |hash,key|
+    hash[key] = Hash.new do |hash,key|
+        hash[key] = {:attempts => 0, :made => 0}
+    end
+end
+shot_type = Hash.new {|h, k| h[k] = {:attempts => 0, :made => 0} }
+distance  = Hash.new {|h, k| h[k] = {:attempts => 0, :made => 0} }
+angle     = Hash.new {|h, k| h[k] = {:attempts => 0, :made => 0} }
+assisted  = Hash.new {|h, k| h[k] = {:attempts => 0, :made => 0} }
 
-shot_type = Hash.new (Tracker.new(0,0))
-location  = Array.new(50,Array.new(50,Tracker.new(0,0)))
-distance  = Hash.new (Tracker.new(0,0))
-angle     = Hash.new (Tracker.new(0,0))
-assisted  = Hash.new (Tracker(0,0))
-
-counter = 0
+shot_counter = 0
+game_counter = 0
+puts END_DATE
+brier = {
+    :shot_type => 0,
+    :location  => 0,
+    :distance  => 0,
+    :angle      => 0,
+    :assisted  => 0
+}
 files.each do |file|
     date = Date.parse(File.basename(file).split('.')[0])
-    CSV.foreach(file, headers: true) do |row|
-        if row['etype'] == ('shot' || 'free throw')
-            if row['type'].blank?
-                type = 'free throw'
-            else
+    if date <= END_DATE
+        CSV.foreach(file, headers: true) do |row|
+            if row['etype'] == ('shot' || 'free throw')
+                if row['type'] == ''
+                    type = 'free throw'
+                else
+                    type = row['type']
+                    x = row['x'].to_i
+                    y = row['y'].to_i
+                end
+                shot_type[type][:attempts] += 1
+                shot_type[type][:made] += 1 unless row['result'] == 'missed'
+                if type != 'free throw'
+                    location[x][y][:attempts] += 1
+                    location[x][y][:made] += 1 unless row['result'] == 'missed'
+
+                    length = (((x-25)**2+(y-5.25)**2)**(1/2)).round
+                    distance[length][:attempts] += 1
+                    distance[length][:made] += 1 unless row['result'] == 'missed'
+
+                    shot_angle = (Math.atan2((x-25),(y-5.25)) * 180/Math::PI).round
+                    angle[shot_angle][:attempts] += 1
+                    angle[shot_angle][:made] += 1 unless row['result'] == 'missed'
+
+                    assist = row['assist'] == '' ? false : true
+                    assisted[assist][:attempts] += 1
+                    assisted[assist][:made] += 1 unless row['result'] == 'missed'
+                end
+            end
+        end
+        game_counter += 1
+        puts game_counter if game_counter.modulo(100) == 0
+    else
+        break if shot_counter >= TEST_SHOTS
+        CSV.foreach(file, headers: true) do |row|
+            if row['etype'] == 'shot'
+                #TODO Free Throw
                 type = row['type']
                 x = row['x'].to_i
                 y = row['y'].to_i
-            end
-            shot_type[type][:attempts] += 1
-            shot_type[type][:made] += 1 unless row['result'] == 'missed'
-            if type != 'free throw'
-                location[x][y][:attempts] += 1
-                location[x][y][:made] += 1 unless row['result'] == 'missed'
 
-                length = (((45-25)**2+(25-5.25)**2)**(1/2)).round
-                distance[length][:attempts] += 1
-                distance[length][:made] += 1 unless row['result'] == 'missed'
+                shot_type_percent = percentage(shot_type[type])
+                length = (((x-25)**2+(y-5.25)**2)**(1/2)).round
+                distance_percent = percentage(distance[length])
 
-                shot_angle = (Math.atan2((45-25),(25.25-5.25)) * 180/Math::PI).round
-                angle[shot_angle][:attempts] += 1
-                angle[shot_angle][:made] += 1 unless row['result'] == 'missed'
+                shot_angle = (Math.atan2((x-25),(y-5.25)) * 180/Math::PI).round
+                shot_angle_percent = percentage(angle[shot_angle])
+                assist = row['assist'] == '' ? false : true
+                assisted_percent = percentage(assisted[assist])
+                location_percent = percentage(location[x][y])
+                result = row['result'] == 'missed' ? 0 : 1
 
-                assist = row['assist'].blank?
-                assisted[assist][:attempts] += 1
-                assisted[assist][:made] += 1 unless row['result'] == 'missed'
+                brier[:shot_type] += (shot_type_percent-result)**2
+                brier[:distance] +=  (distance_percent-result)**2
+                brier[:angle] += (shot_angle_percent-result)**2
+                brier[:assisted] +=  (assisted_percent-result)**2
+                brier[:location] +=  (location_percent-result)**2
+
+                shot_counter += 1
+                break if shot_counter >= TEST_SHOTS
             end
         end
     end
-    counter += 1
-    break if counter.modulo(100) == 0
+    break if shot_counter >= TEST_SHOTS
 end
-CSV.open("location.csv", "wb") do |csv|
-    (0..50).each do |y|
-        row = []
-        (0..50).each do |x|
-            row << location[x][y].percentage
-        end
-        csv << row
-    end
-end
+puts brier
 
+#2006-12-21
+#{:shot_type=>21.379436703102524, :location=>24.384841900710892, :distance=>24.929326408222018, :angle=>25.299753202386356, :assisted=>24.929326408222018}
+#2007-12-01
+#{:shot_type=>17.413335403254777, :location=>20.811554213104145, :distance=>23.983791771095653, :angle=>21.776610329700034, :assisted=>23.983791771095653}
