@@ -9,6 +9,7 @@ require 'csv'
 #end
 
 #END_DATE = date_parse(ARGV[0])
+
 TEST_GAMES = 10
 files = Dir[ File.join('./data', '**', '*') ].reject { |p| File.directory? p }
 
@@ -65,55 +66,55 @@ brier = {
     :assisted  => 0,
     :all_shots => 0,
     :type_and_distance => 0,
-    :shooter_and_type  => 0
+    :shooter_and_type  => 0,
+    :all_misses => 0,
+    :all_swish  => 0,
+    :coin_flips => 0
 }
 
 CSV.open("shot_results.csv","wb") do |csv|
-    csv << ['games', 'shot_type', 'distance', 'location', 'angle', 'assisted', 'all_shots', 'type_and_distance', 'shooter_and_type']
+    csv << ['games', 'shot_type', 'distance', 'location', 'angle', 'assisted', 'all_shots', 'type_and_distance', 'shooter_and_type', 'all_misses', 'all_swish', 'coin_flips']
 end
 
 files.each do |file|
+    #date = Date.parse(File.basename(file).split('.')[0])
+    #break if date > END_DATE
     CSV.foreach(file, headers: true) do |row|
-        if row['etype'] == ('shot' || 'free throw')
-            if row['type'] == ''
-                type = 'free throw'
-            else
-                type = row['type']
-                x = row['x'].to_i
-                y = row['y'].to_i
-            end
+        if row['etype'] == 'shot'
+            type = row['type']
+            x = row['x'].to_i
+            y = row['y'].to_i
             shot_type[type][:attempts] += 1
             shot_type[type][:made] += 1 unless row['result'] == 'missed'
-            if type != 'free throw'
-                location[x][y][:attempts] += 1
-                location[x][y][:made] += 1 unless row['result'] == 'missed'
 
-                length = (((x-25)**2+(y-5.25)**2)**(0.5)).round
-                distance[length][:attempts] += 1
-                distance[length][:made] += 1 unless row['result'] == 'missed'
+            location[x][y][:attempts] += 1
+            location[x][y][:made] += 1 unless row['result'] == 'missed'
 
-                shot_angle = (Math.atan2((x-25),(y-5.25)) * 180/Math::PI).round
-                angle[shot_angle][:attempts] += 1
-                angle[shot_angle][:made] += 1 unless row['result'] == 'missed'
+            length = (((x-25)**2+(y-5.25)**2)**(0.5)).round
+            distance[length][:attempts] += 1
+            distance[length][:made] += 1 unless row['result'] == 'missed'
 
-                assist = row['assist'].nil? ? false : true
-                assisted[assist][:attempts] += 1
-                assisted[assist][:made] += 1 unless row['result'] == 'missed'
+            shot_angle = (Math.atan2((x-25),(y-5.25)) * 180/Math::PI).round
+            angle[shot_angle][:attempts] += 1
+            angle[shot_angle][:made] += 1 unless row['result'] == 'missed'
 
-                all_shots[:attempts] += 1
-                all_shots[:made] += 1 unless row['result'] == 'missed'
+            assist = row['assist'].nil? ? false : true
+            assisted[assist][:attempts] += 1
+            assisted[assist][:made] += 1 unless row['result'] == 'missed'
 
-                type_and_distance[type][length][:attempts] += 1
-                type_and_distance[type][length][:made] += 1 unless row['result'] == 'missed'
+            all_shots[:attempts] += 1
+            all_shots[:made] += 1 unless row['result'] == 'missed'
 
-                shooter = row['player']
-                shooter_and_type[shooter][type][:attempts] += 1
-                shooter_and_type[shooter][type][:made] += 1 unless row['result'] == 'missed'
-            end
+            type_and_distance[type][length][:attempts] += 1
+            type_and_distance[type][length][:made] += 1 unless row['result'] == 'missed'
+
+            shooter = row['player']
+            shooter_and_type[shooter][type][:attempts] += 1
+            shooter_and_type[shooter][type][:made] += 1 unless row['result'] == 'missed'
         end
     end
     game_counter += 1
-    if game_counter.modulo(50) == 0  && !testing
+    if game_counter.modulo(100) == 0  && !testing
         puts game_counter
         testing           = true
         test_game_counter = 0
@@ -134,6 +135,9 @@ files.each do |file|
         brier[:all_shots] = 0
         brier[:type_and_distance] = 0
         brier[:shooter_and_type]  = 0
+        brier[:all_misses] = 0
+        brier[:all_swish]  = 0
+        brier[:coin_flips] = 0
     elsif testing
         CSV.foreach(file, headers: true) do |row|
             if row['etype'] == 'shot'
@@ -167,6 +171,9 @@ files.each do |file|
                 brier[:all_shots] += (all_shot_percentage - result)**2
                 brier[:type_and_distance] += (type_and_distance_percentage - result)**2
                 brier[:shooter_and_type] += (shooter_and_type_percentage - result)**2
+                brier[:all_misses] += (0.0 - result)**2
+                brier[:all_swish]  += (1.0 - result)**2
+                brier[:coin_flips] += (0.5-result)**2
                 shot_counter += 1
             end
         end
@@ -177,17 +184,11 @@ files.each do |file|
                 csv << [game_counter-test_game_counter, brier[:shot_type]/shot_counter, brier[:distance]/shot_counter,
                         brier[:location]/shot_counter, brier[:angle]/shot_counter,
                         brier[:assisted]/shot_counter, brier[:all_shots]/shot_counter,
-                        brier[:type_and_distance]/shot_counter, brier[:shooter_and_type]/shot_counter]
+                        brier[:type_and_distance]/shot_counter, brier[:shooter_and_type]/shot_counter,
+                        brier[:all_misses]/shot_counter, brier[:all_swish]/shot_counter,
+                        brier[:coin_flips]/shot_counter]
             end
             testing = false
         end
     end
 end
-
-#2006-12-21
-#{:shot_type=>21.379436703102524, :location=>24.384841900710892, :distance=>24.01203237792804, :angle=>25.299753202386356, :assisted=>53.0, :all_shots=>24.929326408222018}
-#2007-12-01
-#{:shot_type=>17.413335403254777, :location=>20.811554213104145, :distance=>21.242084082287597, :angle=>21.776610329700034, :assisted=>64.0, :all_shots=>23.983791771095653}
-#2007-12-01 - 50% chance if we don't have a calculated percentage
-#{:shot_type=>17.413335403254777, :location=>21.061554213104145, :distance=>21.242084082287597, :angle=>21.776610329700034, :assisted=>64.0, :all_shots=>23.983791771095653}
-
