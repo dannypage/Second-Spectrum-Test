@@ -66,7 +66,7 @@ var drawing = {
         lineupGroup.children[0].setShadow(3, 3, 'rgba(0,0,0,0.1)', 0);
         for (var i = 1; i < lineup_array.length; i++)
         {
-            lineupGroup.add(game.make.text(posX, 180 + i * 32, lineup_array[i], { font: "22pt Lucida Sans Unicode, Lucida Grande, sans-serif", fill: '#ffffff', align: 'center' }));
+            lineupGroup.add(game.make.text(posX, 180 + i * 32, lineup_array[i], { font: "20pt Lucida Sans Unicode, Lucida Grande, sans-serif", fill: '#ffffff', align: 'center' }));
         }
         for (var i = 1, len = lineupGroup.children.length; i < len; i++) {
             lineupGroup.children[i].x = posX - (lineupGroup.children[i].width * 0.5);
