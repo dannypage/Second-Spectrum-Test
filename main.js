@@ -80,11 +80,11 @@ var actions = {
                     demo.destroy();
                     drawnObject.destroy();
                 }
-                moving = true
+                moving = true;
                 selected.level = 3;
                 landscape.tweenY();
             } else if (direction == 'down' && landscape.checkDown() && moving) {
-                moving = false
+                moving = false;
                 landscape.tweenY();
             }
         }

@@ -7,8 +7,6 @@ var mainState = {
         game.stage.backgroundColor = '#7FDBFF';
     },
     create: function() {
-
-
         pitch = game.add.sprite(0, 0, 'background');
         pitch.scale.setTo(1.35, 1.35);
 
@@ -23,6 +21,7 @@ var mainState = {
         home.scale.setTo(0.9, 0.9);
         away = game.add.sprite(650, 10, 'skyblue');
         away.scale.setTo(0.7, 0.7);
+        cursor = game.input.keyboard.createCursorKeys();
     },
     update: function() {
 
@@ -39,9 +38,9 @@ var drawing = {
         titlebar = game.add.sprite(0, 25, bmd);
     },
     draw_lineup: function() {
-        var bmd = game.add.bitmapData(500, 425);
+        var bmd = game.add.bitmapData(600, 425);
         bmd.ctx.beginPath();
-        bmd.ctx.rect(0, 0, 500, 425);
+        bmd.ctx.rect(0, 0, 600, 425);
         bmd.ctx.fillStyle = '#BB0000';
         bmd.ctx.fill();
         lineup = game.add.sprite(400, 360, bmd);
@@ -61,15 +60,32 @@ var drawing = {
     },
     text_lineup:function() {
         var posX = 400
-        lineup_array = ['Spirit Starting XI', 'Francisca ORDEGA', 'Christine NAIRN', 'Crystal DUNN', 'Joanna LOHMAN', 'Tori HUSTER', 'Angela SALEM', 'Katherine REYNOLDS', 'Estelle JOHNSON', 'Megan OYSTER', 'Whitney CHURCH', 'Kelsey WYS'];
+        lineup_array = ['Spirit Starting XI', 'Francisca\nORDEGA', 'Christine\nNAIRN', 'Crystal\nDUNN', 'Joanna\nLOHMAN', 'Tori\nHUSTER', 'Angela\nSALEM', 'Katherine\nREYNOLDS', 'Estelle\nJOHNSON', 'Megan\nOYSTER', 'Whitney\nCHURCH', 'Kelsey\nWYS'];
         lineupGroup.add(game.make.text(posX, 150, lineup_array[0], { font: "bold 32pt Lucida Sans Unicode, Lucida Grande, sans-serif", fill: '#ffffff' }));
+        lineupGroup.children[0].x = posX - (lineupGroup.children[0].width * 0.5);
+        lineupGroup.children[0].setShadow(3, 3, 'rgba(0,0,0,0.1)', 0);
         for (var i = 1; i < lineup_array.length; i++)
         {
-            lineupGroup.add(game.make.text(posX, 180 + i * 32, lineup_array[i], { font: "22pt Lucida Sans Unicode, Lucida Grande, sans-serif", fill: '#ffffff' }));
+            lineupGroup.add(game.make.text(posX, 180 + i * 32, lineup_array[i], { font: "20pt Lucida Sans Unicode, Lucida Grande, sans-serif", fill: '#ffffff', align: 'center' }));
         }
-        for (var i = 0, len = lineupGroup.children.length; i < len; i++) {
+        for (var i = 1, len = lineupGroup.children.length; i < len; i++) {
             lineupGroup.children[i].x = posX - (lineupGroup.children[i].width * 0.5);
             lineupGroup.children[i].setShadow(3, 3, 'rgba(0,0,0,0.1)', 0);
+            lineupGroup.children[i].inputEnabled = true;
+            lineupGroup.children[i].input.useHandCursor = true;
+            lineupGroup.children[i].input.enableDrag(false, true);
+            lineupGroup.children[i].lineSpacing = -10;
+            lineupGroup.children[i].anchor.setTo(0.5,0.5);
+        }
+    },
+    cleanup: function(round) {
+        for (var i = 1, len = lineupGroup.children.length; i < len; i++) {
+            if (round <= 0) { round = 10; }
+
+            x = lineupGroup.children[i].x / round;
+            lineupGroup.children[i].x = Math.round(x) * round;
+            y = lineupGroup.children[i].y / round;
+            lineupGroup.children[i].y = Math.round(y) * round;
         }
     }
 };
