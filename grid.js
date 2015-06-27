@@ -72,15 +72,15 @@ function leagueSchedule(id, width, height, square)
             switch(d.value) {
                 case 0:
                     d3.select(this)
-                        .style('fill', 'red');
+                        .style('fill', '#d2b2b2');
                     break;
                 case 1:
                     d3.select(this)
-                        .style('fill', 'cyan');
+                        .style('fill', '#66c2a4');
                     break;
                 case 2:
                     d3.select(this)
-                        .style('fill', 'green');
+                        .style('fill', '#006d2c');
                     break;
                 default:
                     d3.select(this)
@@ -93,11 +93,12 @@ function leagueSchedule(id, width, height, square)
         .style("fill", function(d) {
             switch(d.value) {
                 case 0:
-                    return 'red';
+                    return '#d2b2b2';
+                    // #b2e2e2 was used before as a light-light green.
                 case 1:
-                    return 'cyan';
+                    return '#66c2a4';
                 case 2:
-                    return 'green';
+                    return '#006d2c';
                 default:
                     return 'gainsboro';
             }

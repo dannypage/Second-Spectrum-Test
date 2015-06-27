@@ -2,8 +2,8 @@ var mainState = {
     preload: function() {
     // Load all of the images
         game.load.image('background', './lineup/spirit.jpg');
-        game.load.image('spirit', './lineup/Washington_Spirit_logo.png');
-        game.load.image('skyblue', './lineup/SkyBlueFC.png');
+        game.load.image('home', './lineup/Washington_Spirit_logo.png');
+        game.load.image('away', './lineup/boston_breakers.png');
         game.stage.backgroundColor = '#7FDBFF';
     },
     create: function() {
@@ -17,10 +17,10 @@ var mainState = {
         drawing.text_titlebar();
         drawing.text_lineup();
 
-        home = game.add.sprite(10, 15, 'spirit');
-        home.scale.setTo(0.9, 0.9);
-        away = game.add.sprite(650, 10, 'skyblue');
-        away.scale.setTo(0.7, 0.7);
+        home = game.add.sprite(5, 15, 'home');
+        home.scale.setTo(0.85, 0.85);
+        away = game.add.sprite(670, 15, 'away');
+        away.scale.setTo(0.3, 0.35);
         cursor = game.input.keyboard.createCursorKeys();
     },
     update: function() {
@@ -49,7 +49,7 @@ var drawing = {
     },
     text_titlebar:function() {
         var posX = 400
-        titlebar_array = ['Washington Spirit VS Sky Blue FC', 'May 16th, 2015 - 7:00 PM'];
+        titlebar_array = ['Washington Spirit VS Boston Breakers', 'June 6th, 2015 - 7:00 PM'];
         for (var i = 0; i < titlebar_array.length; i++)
         {
             titlebarGroup.add(game.make.text(posX, 35 + i * 40, titlebar_array[i], { font: "32px Tahoma, Geneva, sans-serif", fill: '#ffffff' }));
@@ -60,7 +60,7 @@ var drawing = {
     },
     text_lineup:function() {
         var posX = 400
-        lineup_array = ['Spirit Starting XI', 'Francisca\nORDEGA', 'Christine\nNAIRN', 'Crystal\nDUNN', 'Joanna\nLOHMAN', 'Tori\nHUSTER', 'Angela\nSALEM', 'Katherine\nREYNOLDS', 'Estelle\nJOHNSON', 'Megan\nOYSTER', 'Whitney\nCHURCH', 'Kelsey\nWYS'];
+        lineup_array = ['Spirit Starting XI', 'Amanda\nDA COSTA', 'Christine\nNAIRN', 'Crystal\nDUNN', 'Joanna\nLOHMAN', 'Laura\ndel RIO', 'Angela\nSALEM', 'Katherine\nREYNOLDS', 'Estelle\nJOHNSON', 'Megan\nOYSTER', 'Whitney\nCHURCH', 'Kelsey\nWYS'];
         lineupGroup.add(game.make.text(posX, 150, lineup_array[0], { font: "bold 32pt Lucida Sans Unicode, Lucida Grande, sans-serif", fill: '#ffffff' }));
         lineupGroup.children[0].x = posX - (lineupGroup.children[0].width * 0.5);
         lineupGroup.children[0].setShadow(3, 3, 'rgba(0,0,0,0.1)', 0);
